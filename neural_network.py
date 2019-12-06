@@ -1,0 +1,24 @@
+import numpy as np
+
+
+class Neuron:
+    def __init__(self, number_of_input_values):
+        self.b = np.random.rand(1, 1) * 2 - 1
+        self.W = np.random.rand(1, number_of_input_values) * 2 - 1
+
+
+class NeuralLayer:
+    def __init__(self, number_of_input_connections, number_of_neurons):
+        self.number_of_input_connections = number_of_input_connections
+        self.number_of_neurons = number_of_neurons
+
+
+class NeuralNetwork:
+    layers = []
+
+    def __init__(self, architecture):
+        for index in range(len(architecture) - 1):
+            self.layers.append(NeuralLayer(architecture[index], architecture[index + 1]))
+
+
+

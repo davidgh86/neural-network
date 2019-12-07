@@ -38,12 +38,12 @@ def train(neural_network, X, Y, cost_function, learning_rate=0.5, train_mode=Tru
     out = [(None, X)]
 
     # Forward pass
-    for lay in neural_network.layers:
+    for layer in neural_network.layers:
         print(out[-1][1])
-        print(lay.W)
+        print(layer.W)
 
-        z = out[-1][1] @ lay.W + lay.b
-        a = lay.activation_function[0](z)
+        z = out[-1][1] @ layer.W + layer.b
+        a = layer.activation_function[0](z)
 
         out.append((z, a))
 

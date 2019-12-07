@@ -7,6 +7,7 @@ n = 500
 p = 2
 
 X, Y = make_circles(n_samples=n, factor=0.5, noise=0.05)
+print(Y)
 
 Y = Y[:, np.newaxis]
 

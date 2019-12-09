@@ -34,18 +34,44 @@ class NeuralNetwork:
             self.layers.append(NeuralLayer(architecture[index], architecture[index + 1], activation_function))
 
 
-def train(neural_network, X, Y, cost_function, learning_rate=0.5, train_mode=True):
-    out = [(None, X)]
+def train(neural_network, X_entry_values, Y_expected_value, function_cost, learning_rate=0.5, train_mode=True):
+    out = [(None, X_entry_values)]
 
     # Forward pass
     for layer in neural_network.layers:
-        print(out[-1][1])
-        print(layer.W)
 
         z = out[-1][1] @ layer.W + layer.b
         a = layer.activation_function[0](z)
 
         out.append((z, a))
+
+    # Backward pass
+    if train_mode:
+
+        deltas = []
+
+        for network_layer_index in reversed(range(0, len(neural_network.layers))):
+
+            z = out[network_layer_index + 1][0]
+            a = out[network_layer_index + 1][1]
+
+            if network_layer_index == (len(neural_network.layers) - 1):
+                deltas.insert(0, function_cost[1](a, Y_expected_value) * neural_network.layers[network_layer_index]
+                              .activation_function[1](a))
+            else:
+                deltas.insert(0, deltas[0] @ _W.T * neural_network.layers[network_layer_index]
+                              .activation_function[1](a))
+
+            _W = neural_network.layers[network_layer_index].W
+
+            # Gradient descent
+            neural_network.layers[network_layer_index].b = \
+                neural_network.layers[network_layer_index].b - np.mean(deltas[0], axis=0, keepdims=True) * learning_rate
+            neural_network.layers[network_layer_index].W = \
+                neural_network.layers[network_layer_index].W - out[network_layer_index][1].T @ deltas[0] * learning_rate
+
+    return out[-1][1]
+
 
 
 nn = NeuralNetwork([2, 4, 6], sigmoid)
@@ -58,5 +84,6 @@ n = 5
 p = 2
 
 X, Y = make_circles(n_samples=n, factor=0.5, noise=0.05)
+Y = Y[:, np.newaxis]
 
-train(nn, X, None, None)
+train(nn, X, Y, cost_function)

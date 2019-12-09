@@ -19,8 +19,6 @@ cost_function = (
 class NeuralLayer:
     def __init__(self, number_of_input_connections, number_of_neurons, activation_function):
         self.activation_function = activation_function
-        self.number_of_neurons = number_of_neurons
-        self.number_of_input_connections = number_of_input_connections
 
         self.b = np.random.rand(1, number_of_neurons) * - 1
         self.W = np.random.rand(number_of_input_connections, number_of_neurons) * 2 - 1
@@ -29,61 +27,44 @@ class NeuralLayer:
 class NeuralNetwork:
     layers = []
 
-    def __init__(self, architecture, activation_function):
+    def __init__(self, architecture, activation_function=sigmoid, function_cost=cost_function):
+        self.function_cost = function_cost
         for index in range(len(architecture) - 1):
             self.layers.append(NeuralLayer(architecture[index], architecture[index + 1], activation_function))
 
+    def train(self, X_entry_values, Y_expected_value, learning_rate=0.5, train_mode=True):
+        out = [(None, X_entry_values)]
 
-def train(neural_network, X_entry_values, Y_expected_value, function_cost, learning_rate=0.5, train_mode=True):
-    out = [(None, X_entry_values)]
+        # Forward pass
+        for layer in self.layers:
+            z = out[-1][1] @ layer.W + layer.b
+            a = layer.activation_function[0](z)
 
-    # Forward pass
-    for layer in neural_network.layers:
+            out.append((z, a))
 
-        z = out[-1][1] @ layer.W + layer.b
-        a = layer.activation_function[0](z)
+        # Backward pass
+        if train_mode:
 
-        out.append((z, a))
+            deltas = []
 
-    # Backward pass
-    if train_mode:
+            for network_layer_index in reversed(range(0, len(self.layers))):
 
-        deltas = []
+                a = out[network_layer_index + 1][1]
 
-        for network_layer_index in reversed(range(0, len(neural_network.layers))):
+                if network_layer_index == (len(self.layers) - 1):
+                    deltas.insert(0, self.function_cost[1](a, Y_expected_value) * self.layers[network_layer_index]
+                                  .activation_function[1](a))
+                else:
+                    deltas.insert(0, deltas[0] @ _W.T * self.layers[network_layer_index]
+                                  .activation_function[1](a))
 
-            z = out[network_layer_index + 1][0]
-            a = out[network_layer_index + 1][1]
+                _W = self.layers[network_layer_index].W
 
-            if network_layer_index == (len(neural_network.layers) - 1):
-                deltas.insert(0, function_cost[1](a, Y_expected_value) * neural_network.layers[network_layer_index]
-                              .activation_function[1](a))
-            else:
-                deltas.insert(0, deltas[0] @ _W.T * neural_network.layers[network_layer_index]
-                              .activation_function[1](a))
+                # Gradient descent
+                self.layers[network_layer_index].b = \
+                    self.layers[network_layer_index].b - np.mean(deltas[0], axis=0, keepdims=True) * learning_rate
+                self.layers[network_layer_index].W = \
+                    self.layers[network_layer_index].W - out[network_layer_index][1].T @ deltas[0] * learning_rate
 
-            _W = neural_network.layers[network_layer_index].W
+        return out[-1][1]
 
-            # Gradient descent
-            neural_network.layers[network_layer_index].b = \
-                neural_network.layers[network_layer_index].b - np.mean(deltas[0], axis=0, keepdims=True) * learning_rate
-            neural_network.layers[network_layer_index].W = \
-                neural_network.layers[network_layer_index].W - out[network_layer_index][1].T @ deltas[0] * learning_rate
-
-    return out[-1][1]
-
-
-
-nn = NeuralNetwork([2, 4, 6], sigmoid)
-
-import numpy as np
-
-from sklearn.datasets import make_circles
-
-n = 5
-p = 2
-
-X, Y = make_circles(n_samples=n, factor=0.5, noise=0.05)
-Y = Y[:, np.newaxis]
-
-train(nn, X, Y, cost_function)
